@@ -1,0 +1,49 @@
+# Build
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Arquivos de teste/cobertura
+TestResults/
+coverage/
+
+# Publicação
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Arquivos gerados pelo WPF
+*.g.cs
+*.g.i.cs
+
+# Configurações locais
+appsettings.Local.json
