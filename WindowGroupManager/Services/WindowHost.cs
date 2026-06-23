@@ -30,6 +30,11 @@ public class WindowHost : HwndHost
 
     private IntPtr _handle;
 
+    public IntPtr Handle
+{
+    get;
+    private set;
+}
 
     protected override HandleRef BuildWindowCore(
         HandleRef hwndParent)
@@ -49,9 +54,11 @@ public class WindowHost : HwndHost
             IntPtr.Zero);
 
 
+        Handle = _handle;
+
         return new HandleRef(
             this,
-            _handle);
+            Handle);
     }
 
 

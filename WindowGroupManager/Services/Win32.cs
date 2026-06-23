@@ -5,6 +5,10 @@ namespace WindowGroupManager.Services;
 
 public static class Win32
 {
+    public const int GWL_STYLE = -16;
+    public const int WS_CHILD = 0x40000000;
+    public const int WS_VISIBLE = 0x10000000;
+
     public delegate bool EnumWindowsProc(
         IntPtr hWnd,
         IntPtr lParam);
@@ -33,7 +37,8 @@ public static class Win32
         IntPtr hWnd,
         out uint processId);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll",
+        SetLastError = true)]
     public static extern IntPtr SetParent(
         IntPtr hWndChild,
         IntPtr hWndNewParent);
@@ -47,4 +52,18 @@ public static class Win32
         int nWidth,
         int nHeight,
         bool bRepaint);
+
+    [DllImport("user32.dll",
+        EntryPoint = "GetWindowLongPtr")]
+    public static extern IntPtr GetWindowLongPtr(
+        IntPtr hWnd,
+        int nIndex);
+
+
+    [DllImport("user32.dll",
+        EntryPoint = "SetWindowLongPtr")]
+    public static extern IntPtr SetWindowLongPtr(
+        IntPtr hWnd,
+        int nIndex,
+        IntPtr dwNewLong);
 }

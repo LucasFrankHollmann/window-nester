@@ -7,7 +7,6 @@ namespace WindowGroupManager.Views;
 public partial class MainWindow : Window
 {
     private WindowInfo? selectedWindow;
-    private WindowHost? _host;
     private readonly WindowManager _windowManager =
         new();
 
@@ -15,14 +14,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        _host = new WindowHost();
-
-        HostArea.Child = _host;
-
-
         WindowsList.SelectionChanged +=
             WindowsList_SelectionChanged;
-
 
         LoadWindows();
     }
@@ -58,29 +51,27 @@ public partial class MainWindow : Window
             $"Processo: {selectedWindow.ProcessName}";
     }
 
-    private void AttachButton_Click(
+    private void AttachLeftButton_Click(
         object sender,
         RoutedEventArgs e)
     {
         if (selectedWindow == null)
-        {
-            MessageBox.Show(
-                "Selecione uma janela");
             return;
-        }
 
 
-        Win32.SetParent(
-            selectedWindow.Handle,
-            _host!.Handle);
+        LeftDock.AttachWindow(
+            selectedWindow.Handle);
+    }
+
+    private void AttachRightButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (selectedWindow == null)
+            return;
 
 
-        Win32.MoveWindow(
-            selectedWindow.Handle,
-            0,
-            0,
-            (int)HostArea.ActualWidth,
-            (int)HostArea.ActualHeight,
-            true);
+        RightDock.AttachWindow(
+            selectedWindow.Handle);
     }
 }
