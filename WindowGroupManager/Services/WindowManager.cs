@@ -26,10 +26,29 @@ public class WindowManager
                 builder,
                 builder.Capacity);
 
+            Win32.GetWindowThreadProcessId(
+                hWnd,
+                out uint pid);
+
+            string processName = "";
+
+            try
+            {
+                processName =
+                    System.Diagnostics.Process
+                    .GetProcessById((int)pid)
+                    .ProcessName;
+            }
+            catch
+            {
+            }
+
             windows.Add(new WindowInfo
             {
                 Handle = hWnd,
-                Title = builder.ToString()
+                Title = builder.ToString(),
+                ProcessId = pid,
+                ProcessName = processName
             });
 
             return true;

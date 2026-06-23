@@ -27,4 +27,24 @@ public static class Win32
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(
         IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(
+        IntPtr hWnd,
+        out uint processId);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetParent(
+        IntPtr hWndChild,
+        IntPtr hWndNewParent);
+
+
+    [DllImport("user32.dll")]
+    public static extern bool MoveWindow(
+        IntPtr hWnd,
+        int X,
+        int Y,
+        int nWidth,
+        int nHeight,
+        bool bRepaint);
 }

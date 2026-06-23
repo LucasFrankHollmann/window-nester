@@ -6,8 +6,12 @@ public class WindowInfo
 
     public string Title { get; set; } = string.Empty;
 
+    public uint ProcessId { get; set; }
+
+    public string ProcessName { get; set; } = string.Empty;
+
     public override string ToString()
     {
-        return Title;
+        return $"{Title} [{ProcessName}]";
     }
 }
