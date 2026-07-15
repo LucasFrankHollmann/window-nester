@@ -37,6 +37,12 @@ public static class Win32
         IntPtr hWnd,
         out uint processId);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern int GetClassName(
+        IntPtr hWnd,
+        StringBuilder lpClassName,
+        int nMaxCount);
+
     [DllImport("user32.dll",
         SetLastError = true)]
     public static extern IntPtr SetParent(

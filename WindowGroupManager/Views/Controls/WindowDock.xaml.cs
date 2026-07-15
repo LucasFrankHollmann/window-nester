@@ -3,7 +3,9 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Interop;
 using WindowGroupManager.Services;
 using WindowGroupManager.Models;
 
@@ -36,8 +38,8 @@ public partial class WindowDock : UserControl, INotifyPropertyChanged
     private IntPtr _windowHandle;
     private WindowInfo? selectedWindow;
     private bool _isEmpty = true; // Por padrão, vazio (mostra StackPanel)
-    private readonly WindowManager _windowManager =
-        new();
+    private readonly WindowManager _windowManager = new();
+    private Popup? _windowsPopup;
 
     public bool IsEmpty
     {
@@ -159,74 +161,94 @@ public partial class WindowDock : UserControl, INotifyPropertyChanged
         object sender,
         RoutedEventArgs e)
     {
-        // Open a small popup window (dropdown-like) under the Attach button
-        var owner = Window.GetWindow(this);
+        if (sender is not FrameworkElement button)
+            return;
 
-        var popup = new Window
+        // Close if already open
+        if (_windowsPopup?.IsOpen == true)
         {
-            Owner = owner,
-            WindowStyle = WindowStyle.ToolWindow,
-            ShowInTaskbar = false,
-            ResizeMode = ResizeMode.NoResize,
-            Width = 320,
-            Height = 300,
-            Topmost = true
+            _windowsPopup.IsOpen = false;
+            return;
+        }
+
+        // Get main window handle to exclude from list
+        var mainWindow = Window.GetWindow(this);
+        var mainWindowHandle = new System.Windows.Interop.WindowInteropHelper(mainWindow).Handle;
+
+        // Filter out the main window and the Explorer shell (desktop/taskbar).
+        // Allow normal File Explorer windows (CabinetWClass, etc.).
+        var windows = _windowManager.GetWindows()
+            .Where(w => w.Handle != mainWindowHandle)
+            .Where(w => !(string.Equals(w.ProcessName, "explorer", StringComparison.OrdinalIgnoreCase)
+                          && (string.Equals(w.ClassName, "Progman", StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(w.ClassName, "WorkerW", StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(w.Title, "Program Manager", StringComparison.OrdinalIgnoreCase))))
+            .ToList();
+
+        // Create popup content (ListBox)
+        var list = new ListBox
+        {
+            ItemsSource = windows,
+            MinWidth = 280,
+            MaxHeight = 250
         };
 
-        // Build list of windows
-        var list = new ListBox();
-        list.DisplayMemberPath = "ToString";
-        list.ItemsSource = _windowManager.GetWindows();
+        // On double-click or item selected
         list.MouseDoubleClick += (s, ev) =>
         {
             if (list.SelectedItem is WindowInfo win)
             {
                 selectedWindow = win;
-                popup.Close();
+                _windowsPopup!.IsOpen = false;
                 AttachWindow(win.Handle);
             }
         };
 
-        // Optional select button
-        var selectButton = new Button { Content = "Select", Margin = new Thickness(4), HorizontalAlignment = HorizontalAlignment.Right };
-        selectButton.Click += (s, ev) =>
+        // Create popup
+        _windowsPopup = new Popup
         {
-            if (list.SelectedItem is WindowInfo win)
-            {
-                selectedWindow = win;
-                popup.Close();
-                AttachWindow(win.Handle);
-            }
+            Child = list,
+            PlacementTarget = button,
+            Placement = PlacementMode.Bottom,
+            PopupAnimation = PopupAnimation.Slide,
+            AllowsTransparency = false,
+            StaysOpen = false,
+            IsOpen = true
         };
 
-        var panel = new DockPanel();
-        DockPanel.SetDock(selectButton, Dock.Bottom);
-        panel.Children.Add(selectButton);
-        panel.Children.Add(list);
+        // Focus list for keyboard navigation
+        list.Focus();
+    }
 
-        popup.Content = panel;
+    private void DetachWindowButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_windowHandle == IntPtr.Zero)
+            return;
 
-        // Position popup under the Attach button if possible
-        if (sender is FrameworkElement fe)
+        DetachWindow();
+    }
+
+    private void DetachWindow()
+    {
+        try
         {
-            var pt = fe.PointToScreen(new System.Windows.Point(0, fe.ActualHeight));
-            // Convert screen to owner window coordinates
-            var presentationSource = System.Windows.PresentationSource.FromVisual(owner);
-            if (presentationSource != null)
-            {
-                var transform = presentationSource.CompositionTarget.TransformFromDevice;
-                var target = transform.Transform(pt);
-                popup.Left = target.X;
-                popup.Top = target.Y;
-            }
-            else
-            {
-                popup.Left = pt.X;
-                popup.Top = pt.Y;
-            }
+            // remove parent
+            Win32.SetParent(_windowHandle, IntPtr.Zero);
+
+            // remove WS_CHILD style
+            var style = Win32.GetWindowLongPtr(_windowHandle, Win32.GWL_STYLE).ToInt64();
+            style &= ~Win32.WS_CHILD;
+            Win32.SetWindowLongPtr(_windowHandle, Win32.GWL_STYLE, new IntPtr(style));
+        }
+        catch
+        {
+            // ignore errors
         }
 
-        popup.Show();
+        _windowHandle = IntPtr.Zero;
+        IsEmpty = true;
     }
 
     private void LoadWindows()

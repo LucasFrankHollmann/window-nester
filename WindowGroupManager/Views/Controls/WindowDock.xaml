@@ -13,31 +13,46 @@
     <Grid
         x:Name="HostBorder"
         Background="White">
-        
-        <!-- Mostrado quando NÃO há janela anexada -->
-        <StackPanel 
-            Orientation="Vertical"
-            VerticalAlignment="Center"
-            HorizontalAlignment="Center"
-            Visibility="{Binding IsEmpty, 
-                RelativeSource={RelativeSource AncestorType=UserControl}, 
-                Converter={StaticResource BooleanToVisibility}}">            
-            
-            <Button
-                x:Name="AttachButton"
-                Content="Attach Window"
-                Click="AttachWindowButton_Click"
-                Width="100"
-                Margin="0,10,0,0"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <!-- Top controls: Attach (when empty) OR Detach (when attached) -->
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            HorizontalAlignment="Stretch">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Left"
+                Visibility="{Binding IsEmpty, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibility}}">
+                <Button
+                    x:Name="AttachButton"
+                    Content="Attach Window"
+                    Click="AttachWindowButton_Click"
+                    Width="100"
+                    Margin="8"/>
+            </StackPanel>
+
+            <Button
+                x:Name="DetachButton"
+                Grid.Row="0"
+                Content="Detach"
+                Click="DetachWindowButton_Click"
+                HorizontalAlignment="Right"
+                Margin="8"
+                Padding="6,2"
+                Visibility="{Binding IsEmpty, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvertedBooleanToVisibility}}"/>
         </StackPanel>
 
-        <!-- Mostrado quando há janela anexada -->
+        <!-- Host occupies second row so native child doesn't cover top controls -->
         <local:WindowHost
             x:Name="Host"
-            Visibility="{Binding IsEmpty, 
-                RelativeSource={RelativeSource AncestorType=UserControl}, 
-                Converter={StaticResource InvertedBooleanToVisibility}}"/>
+            Grid.Row="1"
+            Visibility="{Binding IsEmpty, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InvertedBooleanToVisibility}}"/>
         
     </Grid>
 

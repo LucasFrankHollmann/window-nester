@@ -26,6 +26,16 @@ public class WindowManager
                 builder,
                 builder.Capacity);
 
+            // get class name
+            var classBuilder = new StringBuilder(256);
+            try
+            {
+                Win32.GetClassName(hWnd, classBuilder, classBuilder.Capacity);
+            }
+            catch
+            {
+            }
+
             Win32.GetWindowThreadProcessId(
                 hWnd,
                 out uint pid);
@@ -47,6 +57,7 @@ public class WindowManager
             {
                 Handle = hWnd,
                 Title = builder.ToString(),
+                ClassName = classBuilder.ToString(),
                 ProcessId = pid,
                 ProcessName = processName
             });
